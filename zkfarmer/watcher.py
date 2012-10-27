@@ -36,7 +36,7 @@ class ZkFarmWatcher(object):
 class ZkFarmExporter(ZkFarmWatcher):
     def __init__(self, zkconn, root_node_path, conf, updated_handler=None, filter_handler=None):
         super(ZkFarmExporter, self).__init__()
-        self.watched_paths = {}
+        self.watched_paths = set()
 
         while True:
             with self.cv:
@@ -58,13 +58,11 @@ class ZkFarmExporter(ZkFarmWatcher):
 
     def watcher(self, handle, type, state, path):
         with self.cv:
-            if path in self.watched_paths:
-                del self.watched_paths[path]
+            self.watched_paths.discard(path)
             self.notify()
 
     def get_watcher(self, path):
-        if path not in self.watched_paths:
-            self.watched_paths[path] = True
+        self.watched_paths.add(path)
         return self.watcher
 
 
